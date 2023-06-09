@@ -19,12 +19,16 @@ public class Course {
     @Id
     private int id;
     private String name;
+    @Transient
+    @JsonIgnore
+    private int capacity;
 
     @JsonIgnore
     @Transient
     private Set<Student> students = new HashSet<>();
 
-    public Course(String name) {
+    public Course(String name, int capacity) {
         this.name = name;
+        this.capacity = capacity;
     }
 }

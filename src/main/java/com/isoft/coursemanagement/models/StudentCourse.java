@@ -12,13 +12,13 @@ import org.springframework.data.relational.core.mapping.Table;
 public class StudentCourse {
     @Id
     private int id;
-    @Column("student_id")
-    private int studentId;
     @Column("course_id")
     private int courseId;
+    @Column("student_id")
+    private int studentId;
 
-    public StudentCourse(int studentId, int courseId) {
-        this.studentId = studentId;
+    public StudentCourse(int courseId, int studentId) {
         this.courseId = courseId;
+        this.studentId = studentId;
     }
 }

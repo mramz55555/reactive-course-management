@@ -6,12 +6,19 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.r2dbc.connection.init.ConnectionFactoryInitializer;
 import org.springframework.web.reactive.config.EnableWebFlux;
+import reactor.core.publisher.Flux;
+
+import java.util.List;
 
 @SpringBootApplication
 @EnableWebFlux
 public class CourseManagementApplication {
 
     public static void main(String[] args) {
+        Flux<Integer> longNumbersFlux = Flux.fromIterable(List.of(1, 4, 53, 6456, 14));
+        longNumbersFlux.log().subscribe(System.out::println);
+
+
         SpringApplication.run(CourseManagementApplication.class, args);
     }
 
@@ -19,6 +26,7 @@ public class CourseManagementApplication {
     public ConnectionFactoryInitializer initializer(ConnectionFactory connectionFactory) {
         ConnectionFactoryInitializer initializer = new ConnectionFactoryInitializer();
         initializer.setConnectionFactory(connectionFactory);
+//        initializer.setDatabasePopulator(new ResourceDatabasePopulator(new ClassPathResource("schema.sql")));
         return initializer;
     }
 }

@@ -35,21 +35,40 @@ public class StudentService {
                 .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "student with id: " + id + " not found")));
     }
 
-    public Mono<Student> save(Student student) {
-        Student student2 = studentRepository.save(student).block();
 
-        //cascade saving.
-        student.getCourses().forEach(c -> {
-            if (courseRepository.findById(c.getId()).block() == null) {
-                studentCourseRepository.save(new StudentCourse(student.getId(), c.getId())).block();
-                courseRepository.save(c).block();
-            }
-        });
-        return Mono.just(student2);
+    public Mono<Student> save(Student student) {
+        return studentRepository.save(student)
+                .flatMap(savedStudent ->
+                        Flux.fromIterable(savedStudent.getCourses())
+                                .flatMap(course ->
+                                        courseRepository.findByName(course.getName())
+                                                .switchIfEmpty(courseRepository.save(course))
+                                                .flatMap(savedCourse ->
+                                                        studentCourseRepository.save(new StudentCourse(savedCourse.getId(), savedStudent.getId()))
+                                                                .then(Mono.empty())
+                                                )
+                                )
+                                .then(Mono.just(savedStudent))
+                );
     }
 
+
+    public Mono<Boolean> enrollCourse(int studentId, int courseId) {
+        return studentCourseRepository.findByCourseId(courseId).count()
+                .flatMap(co -> courseRepository.findById(courseId)
+                        .flatMap(c -> {
+                                    if (c.getCapacity() == co)
+                                        return Mono.error(new IllegalArgumentException("capacity of this course is full"));
+                                    if (studentRepository.findById(studentId).equals(Mono.empty()) || courseRepository.findById(courseId).equals(Mono.empty()))
+                                        return Mono.error(new IllegalArgumentException("invalid param"));
+                                    return studentCourseRepository.save(new StudentCourse(courseId, studentId)).then();
+                                }
+                        ).then(Mono.just(true)));
+    }
+
+
     public Mono<Void> deleteAll() {
-        studentRepository.findAll().flatMap(c -> studentCourseRepository.deleteByStudentId(c.getId())).blockLast();
-        return studentRepository.deleteAll();
+        return studentCourseRepository.deleteAll()
+                .then(studentRepository.deleteAll());
     }
 }

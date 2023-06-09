@@ -30,4 +30,10 @@ public class StudentController {
     public Mono<Student> saveCourse(@RequestBody Student student) {
         return studentService.save(student);
     }
+
+    @PostMapping("/{id}/enrollCourse")
+    public Mono<Boolean> enrollCourse(@PathVariable(name = "id") int studentId, @RequestParam int courseId) {
+        return studentService.enrollCourse(studentId, courseId);
+    }
+
 }

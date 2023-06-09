@@ -18,7 +18,8 @@ public class CourseService {
     private final StudentRepository studentRepository;
     private final StudentCourseRepository studentCourseRepository;
 
-    public CourseService(CourseRepository courseRepository, StudentRepository studentRepository, StudentCourseRepository studentCourseRepository) {
+    public CourseService(CourseRepository courseRepository, StudentRepository studentRepository,
+                         StudentCourseRepository studentCourseRepository) {
         this.courseRepository = courseRepository;
         this.studentRepository = studentRepository;
         this.studentCourseRepository = studentCourseRepository;
@@ -34,22 +35,28 @@ public class CourseService {
                 .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "course  with id: " + id + " not found")));
     }
 
+
     public Mono<Course> save(Course course) {
-        Course course2 = courseRepository.save(course).block();
-        //cascade saving
-        course2.getStudents().forEach(s -> {
-            if (studentRepository.findById(s.getId()).block() == null)
-                studentRepository.save(s).block();
-            studentCourseRepository.save(new StudentCourse(s.getId(), course.getId())).block();
-            studentRepository.save(s).block();
-        });
-        return Mono.just(course2);
+        return courseRepository.save(course)
+                .flatMap(savedCourse ->
+                        Flux.fromIterable(savedCourse.getStudents())
+                                .flatMap(student ->
+                                        studentRepository.findByName(student.getName())
+                                                .switchIfEmpty(studentRepository.save(student))
+                                                .flatMap(savedStudent ->
+                                                        studentCourseRepository.save(new StudentCourse(savedCourse.getId(), savedStudent.getId()))
+                                                                .then(Mono.empty()) // Complete the inner operation
+                                                )
+                                )
+                                .then(Mono.just(savedCourse))
+                );
     }
 
     public Mono<Void> deleteAll() {
-        courseRepository.findAll().flatMap(c -> studentCourseRepository.deleteByCourseId(c.getId())).blockLast();
-//        studentRepository.findAll()
-//                .doOnNext(s -> template.delete(query(where("student_id").is(s.getId())), StudentCourse.class).block());
-        return courseRepository.deleteAll();
+        //because in this table each student certainly has a relation with a course,
+        // so if we don't have any course, we don't have any relation
+        return studentCourseRepository.deleteAll()
+                .then(courseRepository.deleteAll());
     }
+
 }

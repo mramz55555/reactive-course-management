@@ -25,9 +25,9 @@ public class DataLoader implements CommandLineRunner {
         courseService.deleteAll().block();
         studentService.deleteAll().block();
 
-        Course math = new Course("math");
-        Course physics = new Course("physics");
-        Course chemistry = new Course("chemistry");
+        Course math = new Course("math", 10);
+        Course physics = new Course("physics", 14);
+        Course chemistry = new Course("chemistry", 6);
 
 
         Student ali = new Student("Ali");
@@ -51,6 +51,5 @@ public class DataLoader implements CommandLineRunner {
         studentService.save(ali).block();
         studentService.save(hassan).block();
         studentService.save(hossein).block();
-
     }
 }

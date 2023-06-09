@@ -1,17 +1,16 @@
-use test;
-create table course
+create table if not exists course
 (
     id   int auto_increment primary key,
     name varchar(50)
 );
 
-create table student
+create table if not exists student
 (
     id   int auto_increment primary key,
     name varchar(50)
 );
 
-create table student_course
+create table if not exists student_course
 (
     course_id  int,
     student_id int,
