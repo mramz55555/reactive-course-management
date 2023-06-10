@@ -36,4 +36,8 @@ public class StudentController {
         return studentService.enrollCourse(studentId, courseId);
     }
 
+    @DeleteMapping("/{id}/deleteEnrollment")
+    public Mono<Boolean> deleteEnrollment(@PathVariable(name = "id") int studentId, @RequestParam int courseId) {
+        return studentService.deleteEnrollment(studentId, courseId);
+    }
 }

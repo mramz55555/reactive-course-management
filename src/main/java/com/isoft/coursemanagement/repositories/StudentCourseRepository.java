@@ -15,4 +15,8 @@ public interface StudentCourseRepository extends ReactiveCrudRepository<StudentC
     Flux<Void> deleteAllByCourseId(int id);
 
     Mono<Void> deleteByCourseId(int courseId);
+
+    Mono<StudentCourse> findByCourseIdAndStudentId(int courseId, int studentId);
+
+    Mono<Boolean> deleteByCourseIdAndStudentId(int courseId, int studentId);
 }

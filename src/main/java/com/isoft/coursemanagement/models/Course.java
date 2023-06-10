@@ -19,8 +19,6 @@ public class Course {
     @Id
     private int id;
     private String name;
-    @Transient
-    @JsonIgnore
     private int capacity;
 
     @JsonIgnore

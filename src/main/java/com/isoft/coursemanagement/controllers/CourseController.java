@@ -1,6 +1,7 @@
 package com.isoft.coursemanagement.controllers;
 
 import com.isoft.coursemanagement.models.Course;
+import com.isoft.coursemanagement.models.EnrollmentInfo;
 import com.isoft.coursemanagement.models.Student;
 import com.isoft.coursemanagement.services.CourseService;
 import org.springframework.web.bind.annotation.*;
@@ -31,4 +32,8 @@ public class CourseController {
         return courseService.save(course);
     }
 
+    @GetMapping("{id}/getEnrollmentInfo")
+    public Mono<EnrollmentInfo> getEnrollmentInfo(@PathVariable(name = "id") int courseId) {
+        return courseService.getEnrollmentInfo(courseId);
+    }
 }

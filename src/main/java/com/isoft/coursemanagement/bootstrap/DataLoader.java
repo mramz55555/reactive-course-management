@@ -48,8 +48,10 @@ public class DataLoader implements CommandLineRunner {
         courseService.save(physics).block();
         courseService.save(chemistry).block();
 
+        ali.setName("Ali2");
         studentService.save(ali).block();
-        studentService.save(hassan).block();
-        studentService.save(hossein).block();
+//        studentService.save(ali).subscribe();
+//        studentService.save(hassan).subscribe();
+//        studentService.save(hossein).subscribe();
     }
 }
