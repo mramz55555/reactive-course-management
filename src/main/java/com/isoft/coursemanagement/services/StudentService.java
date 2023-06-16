@@ -53,7 +53,7 @@ public class StudentService {
         return studentCourseRepository.findByCourseId(courseId)
                 .collectList()
                 .flatMap(l -> courseRepository.findById(courseId)
-                        .switchIfEmpty(CourseManagementApplication.monoError(-courseId))
+                        .switchIfEmpty(CourseManagementApplication.monoError(courseId))
                         .flatMap(c -> l.size() == c.getCapacity() ?
                                 Mono.error(new IllegalArgumentException("capacity of this course is full")) :
                                 studentRepository.findById(studentId).switchIfEmpty(CourseManagementApplication.monoError(studentId))
