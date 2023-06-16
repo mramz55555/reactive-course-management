@@ -24,8 +24,7 @@ public class StudentService {
     }
 
     public Flux<Course> getCourses(int id) {
-        return courseRepository.findAllById(studentCourseRepository.findByStudentId(id).map(StudentCourse::getCourseId))
-                .switchIfEmpty(CourseManagementApplication.monoError(id));
+        return courseRepository.findAllById(studentCourseRepository.findByStudentId(id).map(StudentCourse::getCourseId));
     }
 
 
@@ -40,31 +39,26 @@ public class StudentService {
         return studentRepository.save(student)
                 .flatMap(savedStudent ->
                         Flux.fromIterable(savedStudent.getCourses())
-                                .flatMap(course ->
-                                        courseRepository.findByName(course.getName())
-                                                .switchIfEmpty(courseRepository.save(course))
-                                                .flatMap(savedCourse ->
-                                                        studentCourseRepository.findByCourseIdAndStudentId(savedCourse.getId(), savedStudent.getId())
-                                                                .switchIfEmpty(studentCourseRepository.save(new StudentCourse(savedCourse.getId(), savedStudent.getId())))
-                                                                .then(Mono.empty())
-                                                )
-                                )
-                                .then(Mono.just(savedStudent))
+                                .flatMap(course -> courseRepository.save(course)
+                                        .flatMap(savedCourse -> {
+                                                    course.setId(savedCourse.getId());
+                                                    return studentCourseRepository.save(new StudentCourse(savedCourse.getId(), savedStudent.getId()));
+                                                }
+                                        )
+                                ).then(Mono.just(savedStudent))
                 );
     }
 
-    public Mono<Boolean> enrollCourse(int studentId, int courseId) {
+    public Mono<Boolean> enrollCourse(int courseId, int studentId) {
         return studentCourseRepository.findByCourseId(courseId)
                 .collectList()
                 .flatMap(l -> courseRepository.findById(courseId)
-                        .switchIfEmpty(CourseManagementApplication.monoError(courseId))
+                        .switchIfEmpty(CourseManagementApplication.monoError(-courseId))
                         .flatMap(c -> l.size() == c.getCapacity() ?
                                 Mono.error(new IllegalArgumentException("capacity of this course is full")) :
                                 studentRepository.findById(studentId).switchIfEmpty(CourseManagementApplication.monoError(studentId))
-                                        .flatMap(s -> studentCourseRepository.findByCourseIdAndStudentId(courseId, studentId)
-                                                .switchIfEmpty(studentCourseRepository.save(new StudentCourse(courseId, studentId)))
-                                                .then(Mono.just(true))
-                                                .then(Mono.just(false)))));
+                                        .flatMap(s -> studentCourseRepository.save(new StudentCourse(courseId, studentId)))
+                                        .then(Mono.just(true))));
     }
 
 

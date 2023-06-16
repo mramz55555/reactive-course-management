@@ -19,12 +19,12 @@ public class CourseController {
 
     @GetMapping("/{id}")
     public Mono<Course> getCourse(@PathVariable int id) {
-        return courseService.getCourse(id);
+        return courseService.findById(id);
     }
 
     @GetMapping("/{id}/students")
     public Flux<Student> getStudent(@PathVariable int id) {
-        return courseService.getStudents(id);
+        return courseService.findAllStudentsById(id);
     }
 
     @PostMapping

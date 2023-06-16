@@ -25,14 +25,14 @@ public class CourseService {
         this.studentCourseRepository = studentCourseRepository;
     }
 
-    public Flux<Student> getStudents(int id) {
-        return studentRepository.findAllById(studentCourseRepository.findByCourseId(id).map(StudentCourse::getStudentId))
+
+    public Mono<Course> findById(int id) {
+        return courseRepository.findById(id)
                 .switchIfEmpty(CourseManagementApplication.monoError(id));
     }
 
-    public Mono<Course> getCourse(int id) {
-        return courseRepository.findById(id)
-                .switchIfEmpty(CourseManagementApplication.monoError(id));
+    public Flux<Student> findAllStudentsById(int id) {
+        return studentRepository.findAllById(studentCourseRepository.findByCourseId(id).map(StudentCourse::getStudentId));
     }
 
 
@@ -40,16 +40,13 @@ public class CourseService {
         return courseRepository.save(course)
                 .flatMap(savedCourse ->
                         Flux.fromIterable(savedCourse.getStudents())
-                                .flatMap(student ->
-                                        studentRepository.findByName(student.getName())
-                                                .switchIfEmpty(studentRepository.save(student))
-                                                .flatMap(savedStudent ->
-                                                        studentCourseRepository.findByCourseIdAndStudentId(savedCourse.getId(), savedStudent.getId())
-                                                                .switchIfEmpty(studentCourseRepository.save(new StudentCourse(savedCourse.getId(), savedStudent.getId())))
-                                                                .then(Mono.empty())
-                                                )
-                                )
-                                .then(Mono.just(savedCourse))
+                                .flatMap(student -> studentRepository.save(student)
+                                        .flatMap(savedStudent -> {
+                                                    student.setId(savedStudent.getId());
+                                                    return studentCourseRepository.save(new StudentCourse(savedCourse.getId(), savedStudent.getId()));
+                                                }
+                                        )
+                                ).then(Mono.just(savedCourse))
                 );
     }
 
@@ -58,15 +55,14 @@ public class CourseService {
         return studentCourseRepository.findByCourseId(courseId)
                 .switchIfEmpty(CourseManagementApplication.monoError(courseId))
                 .collectList()
-                .flatMap(l -> getCourse(courseId)
+                .flatMap(l -> findById(courseId)
                         .doOnNext(c -> {
                             enrollmentInfo.setCourse(c);
                             enrollmentInfo.setRemainingCapacity(c.getCapacity() - l.size());
 
                         }).and(Flux.fromIterable(l)
                                 .flatMap(sc -> studentRepository.findById(sc.getStudentId())
-                                        .flatMap(s -> Mono.just(enrollmentInfo.getStudents().add(s))))
-                                .then()))
+                                        .flatMap(s -> Mono.just(enrollmentInfo.getStudents().add(s))))))
                 .thenReturn(enrollmentInfo);
     }
 
