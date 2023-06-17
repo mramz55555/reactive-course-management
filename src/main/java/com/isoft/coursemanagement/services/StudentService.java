@@ -64,10 +64,10 @@ public class StudentService {
 
     public Mono<Boolean> deleteEnrollment(int studentId, int courseId) {
         return studentCourseRepository.findByStudentId(studentId)
-                .filter(sc -> sc.getStudentId() == studentId && sc.getCourseId() == courseId)
-                .flatMap(sc -> studentCourseRepository.deleteByCourseIdAndStudentId(courseId, studentId)
-                        .thenReturn(true))
-                .single(false);
+                .filter(sc -> sc.getCourseId() == courseId)
+                .flatMap(sc -> studentCourseRepository.deleteByCourseIdAndStudentId(courseId, studentId).thenReturn(true))
+                .switchIfEmpty(Mono.just(false))
+                .single();
     }
 
 

@@ -35,10 +35,10 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
         try {
             responseBody = objectMapper.writeValueAsString(errorResponse);
         } catch (JsonProcessingException e) {
-            responseBody = "{\"status\":500,\"message\":\"Internal Server Error\"}";
+            responseBody = "{\"status\":400,\"message\":\"Internal Server Error\"}";
         }
 
-        exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+        exchange.getResponse().setStatusCode(HttpStatus.BAD_REQUEST);
         exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
 

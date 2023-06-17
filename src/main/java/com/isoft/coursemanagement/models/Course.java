@@ -27,6 +27,10 @@ public class Course {
     @Transient
     private Set<Student> students = new HashSet<>();
 
+    public Course(String name) {
+        this.name = name;
+    }
+
     public Course(String name, int capacity) {
         this.name = name;
         this.capacity = capacity;
