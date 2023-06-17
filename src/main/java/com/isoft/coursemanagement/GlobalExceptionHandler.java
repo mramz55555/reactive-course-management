@@ -27,7 +27,7 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
         // Create the error response body
         Map<String, Object> errorResponse = new HashMap<>();
 
-        errorResponse.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
         errorResponse.put("message", ex.getMessage());
 
         // Serialize the error response to JSON
